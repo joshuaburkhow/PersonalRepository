@@ -1,0 +1,32 @@
+setwd("L:/Files/Coursera/Exploratory Data Analysis/Project 2/")
+
+## This first line will likely take a few seconds. Be patient!
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
+
+##Subset data
+baltimoreNEI <- subset(NEI,fips=="24510")
+##take out the outlier
+baltimoreNEI <- subset(baltimoreNEI, Emissions<1000)
+
+##join SCC to NEI
+SCC_Cols <- c("SCC","SCC.Level.Three")
+subsetSCC <- SCC[,names(SCC) %in% SCC_Cols]
+mergedNEI <- merge(x = NEI, y = subsetSCC, by = "SCC", all.x = TRUE) 
+
+## create working data set
+nm <- mergedNEI$SCC.Level.Three
+contain_Coal <- nm[grepl("Coal",nm)]
+contain_Coal <- contain_Coal[!duplicated(contain_Coal)]
+coalNEI <- subset(mergedNEI, mergedNEI$"SCC.Level.Three"==contain_Coal)
+
+## note: assuming "ON-ROAD" identifies motor vehicle emission
+baltimoreNEI_MV <- subset(baltimoreNEI,baltimoreNEI$type=="ON-ROAD")
+
+## Question 6
+#create dataset
+LA_BaltimoreNEI <- subset(NEI,fips=="06037"|fips=="24510")
+
+png(filename="plot6.png")
+qplot(data = LA_BaltimoreNEI,x = fips,y = Emissions)
+dev.off()
